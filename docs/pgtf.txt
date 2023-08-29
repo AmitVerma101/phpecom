@@ -1,0 +1,32 @@
+-- create trigger price_change_trigger
+-- after update of price on product
+-- for each row
+-- execute function log_price_change();
+
+
+create or replace function log_price_change()
+-- returns trigger as $$
+-- begin
+-- insert into price_history (productid,old_price,new_price,time_of_change,sellerid)
+-- values (OLD.productid,OLD.price,NEW.price,now(),OLD.sellerid);
+-- RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION create_cart_product_view(username text)
+RETURNS void AS $$
+BEGIN
+    EXECUTE 'CREATE OR REPLACE VIEW cart_product_view AS
+        SELECT e1.title, e1.img, e1.price, e.*
+        FROM product e1
+        INNER JOIN (
+            SELECT *
+            FROM cart
+            WHERE quantity > 0 AND username = $1
+        ) e
+        ON e1.productid = e.productid'
+    USING username;
+END;
+$$ LANGUAGE plpgsql;
+
+create view fetchCartProduct as select e1.title,e1.img,e1.price,e.* from product e1 inner join (select * from cart) e on e1.productid = e.productid;
